@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { TodoAppPage  } from '../pages/todo-app-page';
 import { checkNumberOfCompletedTodosInLocalStorage, checkNumberOfTodosInLocalStorage, checkTodosInLocalStorage } from '../src/todo-app';
 
 test.beforeEach(async ({ page }) => {
@@ -12,19 +13,15 @@ const TODO_ITEMS = [
 
 test.describe('Create New Todo', () => {
   test('should be able to create new items on the page', async ({ page }) => {
-    // create a new todo locator
-    const newTodo = page.getByPlaceholder('What needs to be done?');
-
     // Create 1st todo.
-    await newTodo.fill(TODO_ITEMS[0]);
-    await newTodo.press('Enter');
+    const todoAppPage = new TodoAppPage(page);
+    todoAppPage.addNewTodo(TODO_ITEMS[0])
 
     // Make sure the list only has one todo item.
     await expect(page.getByTestId('todo-item-label')).toHaveCount(1);
 
     // Create 2nd todo.
-    await newTodo.fill(TODO_ITEMS[1]);
-    await newTodo.press('Enter');
+    todoAppPage.addNewTodo(TODO_ITEMS[0])
 
     // Make sure the list now has two todo items.
     await expect(page.getByTestId('todo-item-label')).toHaveCount(2);
@@ -34,19 +31,15 @@ test.describe('Create New Todo', () => {
   });
 
   test('new items appear last on the todo list', async ({ page }) => {
-    // create a new todo locator
-    const newTodo = page.getByPlaceholder('What needs to be done?');
-
     // Create 1st todo.
-    await newTodo.fill(TODO_ITEMS[0]);
-    await newTodo.press('Enter');
+    const todoAppPage = new TodoAppPage(page);
+    todoAppPage.addNewTodo(TODO_ITEMS[0])
 
     // First item is already the last item
     await expect(page.getByTestId('todo-item-label').last()).toHaveText(TODO_ITEMS[0]);
 
     // Create 2nd todo.
-    await newTodo.fill(TODO_ITEMS[1]);
-    await newTodo.press('Enter');
+    todoAppPage.addNewTodo(TODO_ITEMS[1])
 
     // Makes sure that the new item is the last item
     await expect(page.getByTestId('todo-item-label').last()).toHaveText(TODO_ITEMS[1]);
@@ -55,12 +48,9 @@ test.describe('Create New Todo', () => {
 
 test.describe('Edit Todo Item', () => {
   test('should be able to edit an existing todo item', async ({ page }) => {
-    // create a new todo locator
-    const newTodo = page.getByPlaceholder('What needs to be done?');
-
     // Create 1st todo.
-    await newTodo.fill(TODO_ITEMS[0]);
-    await newTodo.press('Enter');
+    const todoAppPage = new TodoAppPage(page);
+    todoAppPage.addNewTodo(TODO_ITEMS[0])
 
     // Todo item has been added
     await expect(page.getByText(TODO_ITEMS[0])).toBeVisible();
@@ -69,6 +59,8 @@ test.describe('Edit Todo Item', () => {
     await page.getByText(TODO_ITEMS[0]).dblclick();
     await page.getByTestId('text-input').last().fill(TODO_ITEMS[1]);
     await page.getByTestId('text-input').last().press('Enter');
+
+    // No traces of previous text for the item is found, and new changes are applied
     await expect(page.getByText(TODO_ITEMS[0])).not.toBeVisible();
     await expect(page.getByText(TODO_ITEMS[1])).toBeVisible();
   });
