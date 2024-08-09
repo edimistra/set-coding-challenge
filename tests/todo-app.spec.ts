@@ -50,8 +50,26 @@ test.describe('Create New Todo', () => {
 
     // Makes sure that the new item is the last item
     await expect(page.getByTestId('todo-item-label').last()).toHaveText(TODO_ITEMS[1]);
+  });
+});
 
-    // There is a bug in the current app, it is not saving anything into local storage.
-    //await checkNumberOfTodosInLocalStorage(page, 2);
+test.describe('Edit Todo Item', () => {
+  test('should be able to edit an existing todo item', async ({ page }) => {
+    // create a new todo locator
+    const newTodo = page.getByPlaceholder('What needs to be done?');
+
+    // Create 1st todo.
+    await newTodo.fill(TODO_ITEMS[0]);
+    await newTodo.press('Enter');
+
+    // Todo item has been added
+    await expect(page.getByText(TODO_ITEMS[0])).toBeVisible();
+
+    // Edit the Todo Item
+    await page.getByText(TODO_ITEMS[0]).dblclick();
+    await page.getByTestId('text-input').last().fill(TODO_ITEMS[1]);
+    await page.getByTestId('text-input').last().press('Enter');
+    await expect(page.getByText(TODO_ITEMS[0])).not.toBeVisible();
+    await expect(page.getByText(TODO_ITEMS[1])).toBeVisible();
   });
 });
