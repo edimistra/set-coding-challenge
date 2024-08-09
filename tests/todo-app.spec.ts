@@ -8,7 +8,8 @@ test.beforeEach(async ({ page }) => {
 
 const TODO_ITEMS = [
   'complete code challenge',
-  'ensure coverage for all items is automated'
+  'ensure coverage for all items is automated',
+  'optional: validate additional scenarios'
 ];
 
 test.describe('Create New Todo', () => {
@@ -81,5 +82,91 @@ test.describe('Delete Todo Item', () => {
 
     // Item was deleted so it cannot be found
     await expect(page.getByText(TODO_ITEMS[0])).not.toBeVisible();
+  });
+});
+
+test.describe('Mark Todo Item as Completed', () => {
+  test('should be able to mark a todo item as completed', async ({ page }) => {
+    // Create 1st todo.
+    const todoAppPage = new TodoAppPage(page);
+    todoAppPage.addNewTodo(TODO_ITEMS[0])
+
+    // Todo item has been added
+    await expect(page.getByText(TODO_ITEMS[0])).toBeVisible();
+
+    // Completes the Todo Item
+    await expect(page.getByTestId("todo-item")).not.toHaveClass('completed');
+    await page.getByTestId("todo-item-toggle").setChecked(true);
+
+    // Validates that list item has a completed state
+    await expect(page.getByTestId("todo-item")).toHaveClass('completed');
+    await expect(page.getByText(TODO_ITEMS[0])).toHaveCSS("text-decoration",/line-through/);
+  });
+
+  test('should display only active (Not Completed) todo items', async ({ page }) => {
+    // Create 1st todo.
+    const todoAppPage = new TodoAppPage(page);
+    todoAppPage.addNewTodo(TODO_ITEMS[0])
+
+    // Todo item has been added
+    await expect(page.getByText(TODO_ITEMS[0])).toBeVisible();
+
+    // Create 2nd todo.
+    todoAppPage.addNewTodo(TODO_ITEMS[1])
+    
+    // Todo item has been added
+    await expect(page.getByText(TODO_ITEMS[1])).toBeVisible();
+
+    // Create 3rd todo.
+    todoAppPage.addNewTodo(TODO_ITEMS[2])
+    
+    // Todo item has been added
+    await expect(page.getByText(TODO_ITEMS[2])).toBeVisible();
+
+    // Completes the 1st Todo Item
+    await page.getByTestId("todo-item-toggle").first().setChecked(true);
+    await expect(page.getByTestId("todo-item").first()).toHaveClass('completed');
+
+    // Validates that Active list doesn't contain any complete items
+    await page.getByText("Active").click();
+    for (const li of await page.getByTestId("todo-item").all())
+      await expect(li).not.toHaveClass('completed');
+  });
+
+  test('should remove completed items from all lists after hitting Clear completed', async ({ page }) => {
+    // Create 1st todo.
+    const todoAppPage = new TodoAppPage(page);
+    todoAppPage.addNewTodo(TODO_ITEMS[0])
+
+    // Todo item has been added
+    await expect(page.getByText(TODO_ITEMS[0])).toBeVisible();
+
+    // Create 2nd todo.
+    todoAppPage.addNewTodo(TODO_ITEMS[1])
+    
+    // Todo item has been added
+    await expect(page.getByText(TODO_ITEMS[1])).toBeVisible();
+
+    // Create 3rd todo.
+    todoAppPage.addNewTodo(TODO_ITEMS[2])
+    
+    // Todo item has been added
+    await expect(page.getByText(TODO_ITEMS[2])).toBeVisible();
+
+    // Completes the 1st Todo Item
+    await page.getByTestId("todo-item-toggle").first().setChecked(true);
+    await expect(page.getByTestId("todo-item").first()).toHaveClass('completed');
+
+    // Clear completed
+    await page.getByRole("button", { name: "Clear completed" }).click();
+
+    // Validates that All list doesn't contain any complete items
+    await page.getByRole("link", { name: "All" }).click();
+      for (const li of await page.getByTestId("todo-item").all())
+        await expect(li).not.toHaveClass('completed');
+
+    // Validates that Completed list doesn't have any items
+    await page.getByRole("link", { name: "Completed" }).click();
+    await expect (page.getByTestId("todo-item")).not.toBeVisible()
   });
 });
