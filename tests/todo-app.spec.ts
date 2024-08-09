@@ -65,3 +65,21 @@ test.describe('Edit Todo Item', () => {
     await expect(page.getByText(TODO_ITEMS[1])).toBeVisible();
   });
 });
+
+test.describe('Delete Todo Item', () => {
+  test('should be able to remove an existing todo item', async ({ page }) => {
+    // Create 1st todo.
+    const todoAppPage = new TodoAppPage(page);
+    todoAppPage.addNewTodo(TODO_ITEMS[0])
+
+    // Todo item has been added
+    await expect(page.getByText(TODO_ITEMS[0])).toBeVisible();
+
+    // Delete the Todo Item
+    await page.getByText(TODO_ITEMS[0]).hover();
+    await page.getByTestId('todo-item-button').click()
+
+    // Item was deleted so it cannot be found
+    await expect(page.getByText(TODO_ITEMS[0])).not.toBeVisible();
+  });
+});
