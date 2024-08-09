@@ -1,4 +1,4 @@
-import { type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
 export class TodoAppPage {
     readonly page: Page;
@@ -12,5 +12,8 @@ export class TodoAppPage {
     async addNewTodo(todoItem: string) {
         await this.todoInput.fill(todoItem);
         await this.todoInput.press('Enter');
+
+        // Todo item has been added
+        await expect(this.page.getByText(todoItem)).toBeVisible();
     }
 }
