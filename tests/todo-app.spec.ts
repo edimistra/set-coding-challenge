@@ -32,4 +32,26 @@ test.describe('Create New Todo', () => {
     // There is a bug in the current app, it is not saving anything into local storage.
     //await checkNumberOfTodosInLocalStorage(page, 2);
   });
+
+  test('new items appear last on the todo list', async ({ page }) => {
+    // create a new todo locator
+    const newTodo = page.getByPlaceholder('What needs to be done?');
+
+    // Create 1st todo.
+    await newTodo.fill(TODO_ITEMS[0]);
+    await newTodo.press('Enter');
+
+    // First item is already the last item
+    await expect(page.getByTestId('todo-item-label').last()).toHaveText(TODO_ITEMS[0]);
+
+    // Create 2nd todo.
+    await newTodo.fill(TODO_ITEMS[1]);
+    await newTodo.press('Enter');
+
+    // Makes sure that the new item is the last item
+    await expect(page.getByTestId('todo-item-label').last()).toHaveText(TODO_ITEMS[1]);
+
+    // There is a bug in the current app, it is not saving anything into local storage.
+    //await checkNumberOfTodosInLocalStorage(page, 2);
+  });
 });
